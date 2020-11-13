@@ -23,6 +23,7 @@ global
 	nbproc 1
 	nbthread {{.NbThread}}
 	ulimit-n 65536
+	maxconn 32000
 
 defaults
 	http-reuse always
