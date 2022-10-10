@@ -70,13 +70,20 @@ func applyFrontends(ha HAProxy, old, new []Frontend) error {
 			}
 		}
 
-		if newUp.Filter != nil {
-			err = ha.CreateFilter("frontend", newUp.Frontend.Name, newUp.Filter.Filter)
+		if newUp.FilterSpoe != nil {
+			err = ha.CreateFilter("frontend", newUp.Frontend.Name, newUp.FilterSpoe.Filter)
 			if err != nil {
 				return err
 			}
 
-			err = ha.CreateTCPRequestRule("frontend", newUp.Frontend.Name, newUp.Filter.Rule)
+			err = ha.CreateTCPRequestRule("frontend", newUp.Frontend.Name, newUp.FilterSpoe.Rule)
+			if err != nil {
+				return err
+			}
+		}
+
+		if newUp.FilterCompression != nil {
+			err = ha.CreateFilter("frontend", newUp.Frontend.Name, newUp.FilterCompression.Filter)
 			if err != nil {
 				return err
 			}

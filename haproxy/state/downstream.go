@@ -41,6 +41,12 @@ func generateDownstream(opts Options, certStore CertificateStore, cfg consul.Dow
 			SslCafile:      caPath,
 			Verify:         models.BindVerifyRequired,
 		},
+		FilterCompression: &FrontendFilter{
+			Filter: models.Filter{
+				Index:      int64p(0),
+				Type:       models.FilterTypeCompression,
+			},
+		},
 	}
 
 	// Logging
@@ -55,7 +61,7 @@ func generateDownstream(opts Options, certStore CertificateStore, cfg consul.Dow
 
 	// Intentions
 	if opts.EnableIntentions {
-		fe.Filter = &FrontendFilter{
+		fe.FilterSpoe = &FrontendFilter{
 			Filter: models.Filter{
 				Index:      int64p(0),
 				Type:       models.FilterTypeSpoe,

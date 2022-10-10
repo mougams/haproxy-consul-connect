@@ -51,30 +51,45 @@ func FromHAProxy(ha HAProxyRead) (State, error) {
 		if err != nil {
 			return state, err
 		}
-		if len(logTargets) > 1 {
-			return state, fmt.Errorf("expected at most 1 filter for frontend %s, got %d", f.Name, len(filters))
-		}
-		var filter *FrontendFilter
-		if len(filters) == 1 {
-			filter = &FrontendFilter{
-				Filter: filters[0],
+		var filterSpoe *FrontendFilter
+		var filterCompression *FrontendFilter
+		for _, filter := range filters {
+			switch filter.Type {
+				case models.FilterTypeSpoe: {
+					if filterSpoe != nil {
+						return state, fmt.Errorf("spoe filter already initialized for frontend %s", f.Name)
+					}
+					filterSpoe = &FrontendFilter{
+						Filter: filter,
+					}
+					rules, err := ha.TCPRequestRules("frontend", f.Name)
+					if err != nil {
+						return state, err
+					}
+					if len(binds) != 1 {
+						return state, fmt.Errorf("expected 1 tcp request rule for frontend %s, got %d", f.Name, len(rules))
+					}
+					filterSpoe.Rule = rules[0]
+				}
+				case models.FilterTypeCompression: {
+					if filterCompression != nil {
+						return state, fmt.Errorf("compression filter already initialized for frontend %s", f.Name)
+					}
+					filterCompression = &FrontendFilter{
+						Filter: filter,
+					}
+				}
+				default:
+					fmt.Errorf("unknown filter type for frontend %s, got %s", f.Name, filter.Type)
 			}
-
-			rules, err := ha.TCPRequestRules("frontend", f.Name)
-			if err != nil {
-				return state, err
-			}
-			if len(binds) != 1 {
-				return state, fmt.Errorf("expected 1 tcp request rule for frontend %s, got %d", f.Name, len(rules))
-			}
-			filter.Rule = rules[0]
 		}
 
 		state.Frontends = append(state.Frontends, Frontend{
-			Frontend:  f,
-			Bind:      binds[0],
-			LogTarget: lt,
-			Filter:    filter,
+			Frontend:          f,
+			Bind:              binds[0],
+			LogTarget:         lt,
+			FilterSpoe:        filterSpoe,
+			FilterCompression: filterCompression,
 		})
 	}
 

@@ -79,6 +79,17 @@ func (h *HAProxy) watch(sd *lib.Shutdown) error {
 				waitAndRetry()
 				continue
 			}
+			// Don't check spoe filter index:
+			//   - all filters are retrieved at once, hence index are updated accordingly to the position
+			//   - but filter are created one at a time, api doesn't allow to create all at once, hence index must be set to 0
+			for index, currentStateFrontend := range currentState.Frontends {
+				if currentStateFrontend.FilterSpoe != nil {
+					fromHa.Frontends[index].FilterSpoe.Filter.Index  = currentStateFrontend.FilterSpoe.Filter.Index
+				}
+				if currentStateFrontend.FilterCompression != nil {
+					fromHa.Frontends[index].FilterCompression.Filter.Index  = currentStateFrontend.FilterCompression.Filter.Index
+				}
+			}
 			diff, equal := messagediff.PrettyDiff(currentState, fromHa)
 			if !equal {
 				log.Errorf("diff found between expected state and haproxy state: %s", diff)
