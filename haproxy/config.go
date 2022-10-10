@@ -41,6 +41,8 @@ defaults
 	{{- range $k, $v := .HAProxyParams.Defaults}}
 	{{$k}} {{$v}}
 	{{- end }}
+	compression algo gzip
+	compression type text/css text/html text/javascript application/javascript text/plain text/xml application/json
 
 userlist controller
 	user {{.DataplaneUser}} insecure-password {{.DataplanePass}}

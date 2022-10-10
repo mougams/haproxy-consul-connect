@@ -33,6 +33,12 @@ func generateUpstream(opts Options, certStore CertificateStore, cfg consul.Upstr
 			Address: cfg.LocalBindAddress,
 			Port:    &fePort64,
 		},
+		FilterCompression: &FrontendFilter{
+			Filter: models.Filter{
+				Index:      int64p(0),
+				Type:       models.FilterTypeCompression,
+			},
+		},
 	}
 	if opts.LogRequests && opts.LogSocket != "" {
 		fe.LogTarget = &models.LogTarget{

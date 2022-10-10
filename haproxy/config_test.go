@@ -49,6 +49,8 @@ defaults
 	multiple key1 value1
 	multiple key2 value2
 	test.with.dots 3
+	compression algo gzip
+	compression type text/css text/html text/javascript application/javascript text/plain text/xml application/json
 
 userlist controller
 	user dummy_user insecure-password dummy_pass
