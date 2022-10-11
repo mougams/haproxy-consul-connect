@@ -370,7 +370,7 @@ func TestWatcherConfigUpdate(t *testing.T) {
 					UpstreamNode {
 						Host:   "127.0.0.1",
 						Port:   21000,
-						Weight: weight_connect_passing,
+						Weight: weight_service_passing,
 					},
 				},
 			},
@@ -433,7 +433,7 @@ func TestWatcherConfigUpdate(t *testing.T) {
 					UpstreamNode {
 						Host:   "127.0.0.1",
 						Port:   21000,
-						Weight: weight_connect_passing,
+						Weight: weight_service_passing,
 					},
 				},
 			},

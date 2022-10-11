@@ -30,6 +30,7 @@ type upstream struct {
 	Datacenter       string
 	Protocol         string
 	Nodes            []*api.ServiceEntry
+	NodesFromService     []*api.ServiceEntry
 	ReadTimeout      time.Duration
 	ConnectTimeout   time.Duration
 
@@ -248,29 +249,47 @@ func (w *Watcher) startUpstreamService(startup bool, up api.Upstream, name strin
 	w.lock.Unlock()
 
 	go func() {
-		index := uint64(0)
+		index_connect := uint64(0)
+		index_service := uint64(0)
 		first := true
 		for {
 			if u.done {
 				return
 			}
-			nodes, meta, err := w.consul.Health().Connect(up.DestinationName, "", true, &api.QueryOptions{
+			// Pull nodes info from health/connect
+			nodes_connect, meta_connect, err_connect := w.consul.Health().Connect(up.DestinationName, "", true, &api.QueryOptions{
 				Datacenter: up.Datacenter,
 				WaitTime:   10 * time.Minute,
-				WaitIndex:  index,
+				WaitIndex:  index_connect,
 			})
-			if err != nil {
-				w.log.Errorf("consul: error fetching service definition for service %s: %s", up.DestinationName, err)
+			if err_connect != nil {
+				w.log.Errorf("consul: error fetching service definition from health/connect for service %s: %s", up.DestinationName, err_connect)
 				time.Sleep(errorWaitTime)
-				index = 0
+				index_connect = 0
 				continue
 			}
-			changed := index != meta.LastIndex
-			index = meta.LastIndex
+
+			// Pull weights info from health/service
+			nodes_svc, meta_svc, err_svc := w.consul.Health().Service(up.DestinationName, "", true, &api.QueryOptions{
+				Datacenter: up.Datacenter,
+				WaitTime:   10 * time.Minute,
+				WaitIndex:  index_service,
+			})
+			if err_svc != nil {
+				w.log.Errorf("consul: error fetching service definition from health/service for service %s: %s", up.DestinationName, err_svc)
+				time.Sleep(errorWaitTime)
+				index_service = 0
+				continue
+			}
+
+			changed := index_connect != meta_connect.LastIndex || index_service != meta_svc.LastIndex
+			index_connect = meta_connect.LastIndex
+			index_service = meta_svc.LastIndex
 
 			if changed {
 				w.lock.Lock()
-				u.Nodes = nodes
+				u.Nodes = nodes_connect
+				u.NodesFromService = nodes_svc
 				w.lock.Unlock()
 				w.notifyChanged()
 			}
@@ -528,19 +547,31 @@ func (w *Watcher) genCfg() Config {
 				Key:  w.leaf.Key,
 			},
 		}
-		for _, s := range up.Nodes {
+		if len(up.Nodes) != len(up.NodesFromService) {
+			log.Errorf("Number of nodes from health/connect is different from number of nodes from health/service: %d != %d", len(up.Nodes), len(up.NodesFromService))
+			break
+		}
+		for index, s := range up.Nodes {
 			serviceInstancesTotal++
 			host := s.Service.Address
 			if host == "" {
 				host = s.Node.Address
 			}
 
+			weights := s.Service.Weights
+			if s.Node.Node == up.NodesFromService[index].Node.Node {
+				weights = up.NodesFromService[index].Service.Weights
+			} else {
+				log.Errorf("Cannot fetch weights from health/service since node at index %d is different: %s != %s", index, s.Node.Node, up.NodesFromService[index].Node.Node)
+				continue
+			}
+
 			weight := 1
 			switch s.Checks.AggregatedStatus() {
 			case api.HealthPassing:
-				weight = s.Service.Weights.Passing
+				weight = weights.Passing
 			case api.HealthWarning:
-				weight = s.Service.Weights.Warning
+				weight = weights.Warning
 			default:
 				continue
 			}
