@@ -270,9 +270,31 @@ func TestWatcherConfigUpdate(t *testing.T) {
 
 	consul := startAgent(t, sd)
 
+	weight_connect_passing := 222
+	weight_connect_warning := 111
+	weight_service_passing := 299
+	weight_service_warning := 123
+
 	err := consul.Agent().ServiceRegister(
 		&api.AgentServiceRegistration{
 			Name: "server",
+			Connect: &api.AgentServiceConnect{
+				SidecarService: &api.AgentServiceRegistration{
+					Proxy: &api.AgentServiceConnectProxyConfig{
+					},
+					Weights: &api.AgentWeights {
+						Passing: weight_connect_passing,
+						Warning: weight_connect_warning,
+					},
+					Check: &api.AgentServiceCheck{
+						AliasService: "server",
+					},
+				},
+			},
+			Weights: &api.AgentWeights {
+				Passing: weight_service_passing,
+				Warning: weight_service_warning,
+			},
 		},
 	)
 	require.NoError(t, err)
@@ -331,7 +353,7 @@ func TestWatcherConfigUpdate(t *testing.T) {
 		ServiceID:   "client-inst",
 		Downstream: Downstream{
 			LocalBindAddress: "0.0.0.0",
-			LocalBindPort:    21000,
+			LocalBindPort:    21001,
 			TargetAddress:    "127.0.0.1",
 			TargetPort:       8080,
 			ConnectTimeout:   DefaultConnectTimeout,
@@ -344,6 +366,13 @@ func TestWatcherConfigUpdate(t *testing.T) {
 				LocalBindPort:    8081,
 				ConnectTimeout:   1 * time.Minute,
 				ReadTimeout:      1 * time.Minute,
+				Nodes:			  []UpstreamNode{
+					UpstreamNode {
+						Host:   "127.0.0.1",
+						Port:   21000,
+						Weight: weight_connect_passing,
+					},
+				},
 			},
 		},
 	}
@@ -387,7 +416,7 @@ func TestWatcherConfigUpdate(t *testing.T) {
 		ServiceID:   "client-inst",
 		Downstream: Downstream{
 			LocalBindAddress: "0.0.0.0",
-			LocalBindPort:    21000,
+			LocalBindPort:    21001,
 			TargetAddress:    "127.0.0.1",
 			TargetPort:       8080,
 			ConnectTimeout:   DefaultConnectTimeout,
@@ -400,6 +429,13 @@ func TestWatcherConfigUpdate(t *testing.T) {
 				LocalBindPort:    8082,
 				ConnectTimeout:   2 * time.Minute,
 				ReadTimeout:      2 * time.Minute,
+				Nodes:			  []UpstreamNode{
+					UpstreamNode {
+						Host:   "127.0.0.1",
+						Port:   21000,
+						Weight: weight_connect_passing,
+					},
+				},
 			},
 		},
 	}
