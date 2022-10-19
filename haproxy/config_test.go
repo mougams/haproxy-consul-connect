@@ -2,6 +2,8 @@ package haproxy
 
 import (
 	"bytes"
+	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/haproxytech/haproxy-consul-connect/utils"
@@ -36,7 +38,7 @@ global
 	master-worker
 	stats socket stats_sock.sock mode 600 level admin expose-fd listeners
 	maxconn 32000
-	nbthread 12
+	nbthread ` + fmt.Sprint(runtime.GOMAXPROCS(0)) + `
 	stats timeout 2m
 	tune.ssl.default-dh-param 1024
 	ulimit-n 65536
