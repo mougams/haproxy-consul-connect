@@ -28,6 +28,7 @@ func (p HAProxyParams) With(other HAProxyParams) HAProxyParams {
 type Options struct {
 	HAProxyBin           string
 	DataplaneBin         string
+	DataplaneLogLevel    string
 	ConfigBaseDir        string
 	SPOEAddress          string
 	EnableIntentions     bool

@@ -112,6 +112,7 @@ RHmDi0qnL6qrKfjTOnfHgQPCgxAy9knMIiDzBRg=
 		DataplaneSock:           cfgDir + "/dpsock",
 		DataplaneUser:           "usr",
 		DataplanePass:           "pass",
+		DataplaneLogLevel:       "info",
 	})
 	require.NoError(t, err)
 

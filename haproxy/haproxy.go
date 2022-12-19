@@ -81,6 +81,7 @@ func (h *HAProxy) start(sd *lib.Shutdown) error {
 		DataplaneSock:           h.haConfig.DataplaneSock,
 		DataplaneUser:           h.haConfig.DataplaneUser,
 		DataplanePass:           h.haConfig.DataplanePass,
+		DataplaneLogLevel:       h.opts.DataplaneLogLevel,
 	})
 	if err != nil {
 		return err

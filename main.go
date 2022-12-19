@@ -66,6 +66,7 @@ func main() {
 	flag.Var(&haproxyParamsFlag, "haproxy-param", "Global or defaults Haproxy config parameter to set in config. Can be specified multiple times. Must be of the form `defaults.name=value` or `global.name=value`")
 	versionFlag := flag.Bool("version", false, "Show version and exit")
 	logLevel := flag.String("log-level", "INFO", "Log level")
+	dataplaneLogLevel := flag.String("dataplane-log-level", "info", "Dataplane Log level")
 	consulAddr := flag.String("http-addr", "127.0.0.1:8500", "Consul agent address")
 	service := flag.String("sidecar-for", "", "The consul service id to proxy")
 	serviceTag := flag.String("sidecar-for-tag", "", "The consul service id to proxy")
@@ -154,6 +155,7 @@ func main() {
 	hap := haproxy.New(consulClient, watcher.C, utils.Options{
 		HAProxyBin:           *haproxyBin,
 		DataplaneBin:         *dataplaneBin,
+		DataplaneLogLevel:    *dataplaneLogLevel,
 		ConfigBaseDir:        *haproxyCfgBasePath,
 		EnableIntentions:     *enableIntentions,
 		StatsListenAddr:      *statsListenAddr,
