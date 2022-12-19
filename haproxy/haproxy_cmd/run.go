@@ -32,6 +32,7 @@ type Config struct {
 	DataplaneSock           string
 	DataplaneUser           string
 	DataplanePass           string
+	DataplaneLogLevel       string
 }
 
 func Start(sd *lib.Shutdown, cfg Config) (*dataplane.Dataplane, error) {
@@ -55,7 +56,7 @@ func Start(sd *lib.Shutdown, cfg Config) (*dataplane.Dataplane, error) {
 		"--userlist", "controller",
 		"--transaction-dir", cfg.DataplaneTransactionDir,
 		"--log-format", "JSON",
-		"--log-level", "info",
+		"--log-level", cfg.DataplaneLogLevel,
 	)
 	cleanupHAProxy := func() {
 		haCmd.Process.Signal(os.Kill)
