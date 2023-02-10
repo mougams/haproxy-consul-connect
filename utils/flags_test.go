@@ -10,6 +10,7 @@ func TestMakeHAProxyParams(t *testing.T) {
 	flags := StringSliceFlag{
 		"defaults.test.with.dots=3",
 		"defaults.another=abdc",
+		"defaults.another=efgh",
 		"global.with.spaces=hey I have spaces",
 		"global.with.dots=hey.I.have.dots",
 	}
@@ -18,13 +19,13 @@ func TestMakeHAProxyParams(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, HAProxyParams{
-		Defaults: map[string]string{
-			"test.with.dots": "3",
-			"another":        "abdc",
+		Defaults: map[string][]string{
+			"test.with.dots": {"3"},
+			"another":        {"abdc", "efgh"},
 		},
-		Globals: map[string]string{
-			"with.spaces": "hey I have spaces",
-			"with.dots":   "hey.I.have.dots",
+		Globals: map[string][]string{
+			"with.spaces": {"hey I have spaces"},
+			"with.dots":   {"hey.I.have.dots"},
 		},
 	}, r)
 }

@@ -1,14 +1,14 @@
 package utils
 
 type HAProxyParams struct {
-	Defaults map[string]string
-	Globals  map[string]string
+	Defaults map[string][]string
+	Globals  map[string][]string
 }
 
 func (p HAProxyParams) With(other HAProxyParams) HAProxyParams {
 	new := HAProxyParams{
-		Defaults: map[string]string{},
-		Globals:  map[string]string{},
+		Defaults: map[string][]string{},
+		Globals:  map[string][]string{},
 	}
 	for k, v := range p.Defaults {
 		new.Defaults[k] = v
