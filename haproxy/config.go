@@ -17,15 +17,15 @@ import (
 )
 
 var defaultsHAProxyParams = utils.HAProxyParams{
-	Globals: map[string]string{
-		"stats":                     "timeout 2m",
-		"tune.ssl.default-dh-param": "1024",
-		"nbthread":                  fmt.Sprint(runtime.GOMAXPROCS(0)),
-		"ulimit-n":                  "65536",
-		"maxconn":                   "32000",
+	Globals: map[string][]string{
+		"stats":                     {"timeout 2m"},
+		"tune.ssl.default-dh-param": {"1024"},
+		"nbthread":                  {fmt.Sprint(runtime.GOMAXPROCS(0))},
+		"ulimit-n":                  {"65536"},
+		"maxconn":                   {"32000"},
 	},
-	Defaults: map[string]string{
-		"http-reuse": "always",
+	Defaults: map[string][]string{
+		"http-reuse": {"always"},
 	},
 }
 
@@ -33,13 +33,17 @@ const baseCfgTmpl = `
 global
 	master-worker
 	stats socket {{.SocketPath}} mode 600 level admin expose-fd listeners
-	{{- range $k, $v := .HAProxyParams.Globals}}
+	{{- range $k, $vs := .HAProxyParams.Globals}}
+	{{- range $v := $vs}}
 	{{$k}} {{$v}}
+	{{- end }}
 	{{- end }}
 
 defaults
-	{{- range $k, $v := .HAProxyParams.Defaults}}
+	{{- range $k, $vs := .HAProxyParams.Defaults}}
+	{{- range $v := $vs}}
 	{{$k}} {{$v}}
+	{{- end }}
 	{{- end }}
 	compression algo gzip
 	compression type text/css text/html text/javascript application/javascript text/plain text/xml application/json

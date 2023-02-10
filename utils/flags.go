@@ -18,8 +18,8 @@ func (i *StringSliceFlag) Set(value string) error {
 
 func MakeHAProxyParams(flags StringSliceFlag) (HAProxyParams, error) {
 	params := HAProxyParams{
-		Defaults: map[string]string{},
-		Globals:  map[string]string{},
+		Defaults: map[string][]string{},
+		Globals:  map[string][]string{},
 	}
 
 	for _, flag := range flags {
@@ -33,7 +33,7 @@ func MakeHAProxyParams(flags StringSliceFlag) (HAProxyParams, error) {
 			return params, fmt.Errorf("bad haproxy-param flag %s, expected {type}.{name}={value}", flag)
 		}
 
-		var t map[string]string
+		var t map[string][]string
 		switch parts[0][:dot] {
 		case "defaults":
 			t = params.Defaults
@@ -43,7 +43,11 @@ func MakeHAProxyParams(flags StringSliceFlag) (HAProxyParams, error) {
 			return params, fmt.Errorf("bad haproxy-param flag %s, param type must be `defaults` or `global`", flag)
 		}
 
-		t[parts[0][dot+1:]] = parts[1]
+		_, ok := t[parts[0][dot+1:]]
+		if !ok  {
+			t[parts[0][dot+1:]] = []string{}
+		}
+		t[parts[0][dot+1:]] = append(t[parts[0][dot+1:]], parts[1])
 	}
 
 	return params, nil
